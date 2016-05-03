@@ -99,8 +99,7 @@ export function renderMixin (Vue) {
 function resolveSlots (vm, renderChildren) {
   if (renderChildren) {
     const children = flatten(renderChildren())
-    const slots = {}
-    const defaultSlot = []
+    const slots = { default: children }
     let i = children.length
     let name, child
     while (i--) {
@@ -112,15 +111,8 @@ function resolveSlots (vm, renderChildren) {
         } else {
           slot.push(child)
         }
-      } else {
-        defaultSlot.push(child)
+        children.splice(i, 1)
       }
-    }
-    if (defaultSlot.length && !(
-      defaultSlot.length === 1 &&
-      defaultSlot[0].text === ' '
-    )) {
-      slots['default'] = defaultSlot
     }
     vm.$slots = slots
   }
