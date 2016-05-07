@@ -9,43 +9,25 @@ describe('SSR: renderToStream', () => {
       template: `
         <div>
           <p class="hi">yoyo</p>
-          <div id="ho" :class="[testClass, { red: isRed }]"></div>
+          <div id="ho" :class="{ red: isRed }"></div>
           <span>{{ test }}</span>
           <input :value="test">
-          <b-comp></b-comp>
-          <c-comp></c-comp>
+          <test></test>
         </div>
       `,
       data: {
         test: 'hi',
-        isRed: true,
-        testClass: 'a'
+        isRed: true
       },
       components: {
-        bComp (resolve) {
-          return resolve({
-            render () {
-              return this.$createElement('test-async-2')
-            },
-            components: {
-              testAsync2 (resolve) {
-                return resolve({
-                  created () { this.$parent.$parent.testClass = 'b' },
-                  render () {
-                    return this.$createElement('div', { class: [this.$parent.$parent.testClass] }, 'test')
-                  }
-                })
-              }
-            }
-          })
-        },
-        cComp: {
-          render () {
-            return this.$createElement('div', { class: [this.$parent.testClass] }, 'test')
+        test: {
+          render: function () {
+            return this.$createElement('div', { class: ['a'] }, 'hahahaha')
           }
         }
       }
     })
+
     let res = ''
     stream.on('data', chunk => {
       res += chunk
@@ -53,12 +35,11 @@ describe('SSR: renderToStream', () => {
     stream.on('end', () => {
       expect(res).toContain(
         '<div server-rendered="true">' +
-        '<p class="hi">yoyo</p>' +
-        '<div id="ho" class="a red"></div>' +
-        '<span>hi</span>' +
-        '<input value="hi">' +
-        '<div class="b">test</div>' +
-        '<div class="b">test</div>' +
+          '<p class="hi">yoyo</p>' +
+          '<div id="ho" class="red"></div>' +
+          '<span>hi</span>' +
+          '<input value="hi">' +
+          '<div class="a">hahahaha</div>' +
         '</div>'
       )
       done()

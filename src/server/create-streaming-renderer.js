@@ -1,28 +1,16 @@
+import RenderStream from './render-stream'
 import { renderStartingTag } from './render-starting-tag'
 
-export function render (modules, directives, isUnaryTag) {
+export function createStreamingRenderer (modules, directives, isUnaryTag) {
+  function renderComponent (component, write, next, isRoot) {
+    component.$mount()
+    renderNode(component._vnode, write, next, isRoot)
+  }
+
   function renderNode (node, write, next, isRoot) {
     if (node.componentOptions) {
-      const { Ctor, propsData, listeners, parent, children } = node.componentOptions
-      const options = {
-        parent,
-        propsData,
-        _parentVnode: node,
-        _parentListeners: listeners,
-        _renderChildren: children
-      }
-      // check inline-template render functions
-      const inlineTemplate = node.data.inlineTemplate
-      if (inlineTemplate) {
-        options.render = inlineTemplate.render
-        options.staticRenderFns = inlineTemplate.staticRenderFns
-      }
-      const child = new Ctor(options)
-      child._mount = () => {
-        child._renderStaticTrees()
-        renderNode(child._render(), write, next)
-      }
-      child.$mount(node.elm)
+      node.data.hook.init(node)
+      renderComponent(node.child, write, next, isRoot)
     } else {
       if (node.tag) {
         renderElement(node, write, next, isRoot)
@@ -36,7 +24,7 @@ export function render (modules, directives, isUnaryTag) {
     if (isRoot) {
       if (!el.data) el.data = {}
       if (!el.data.attrs) el.data.attrs = {}
-      el.data.attrs['server-rendered'] = true
+      el.data.attrs['server-rendered'] = 'true'
     }
     const startTag = renderStartingTag(el, modules, directives)
     const endTag = `</${el.tag}>`
@@ -65,8 +53,9 @@ export function render (modules, directives, isUnaryTag) {
     }
   }
 
-  return function render (component, write, done) {
-    component._renderStaticTrees()
-    renderNode(component._render(), write, done, true)
+  return function renderToStream (component) {
+    return new RenderStream((write, done) => {
+      renderComponent(component, write, done, true)
+    })
   }
 }
