@@ -1,13 +1,25 @@
-import { createSyncRenderer } from './create-sync-renderer'
-import { createStreamingRenderer } from './create-streaming-renderer'
+import RenderStream from './render-stream'
+import { createRenderFunction } from './render'
 
 export function createRenderer ({
   modules = [],
   directives = {},
   isUnaryTag = (() => false)
 } = {}) {
+  const render = createRenderFunction(modules, directives, isUnaryTag)
   return {
-    renderToString: createSyncRenderer(modules, directives, isUnaryTag),
-    renderToStream: createStreamingRenderer(modules, directives, isUnaryTag)
+    renderToString (component) {
+      let result = ''
+      render(component, (str, next) => {
+        result += str
+        next && next()
+      })
+      return result
+    },
+    renderToStream (component) {
+      return new RenderStream((write, done) => {
+        render(component, write, done)
+      })
+    }
   }
 }
