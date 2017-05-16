@@ -1,6 +1,6 @@
 import { parse } from 'compiler/parser/index'
 import { extend } from 'shared/util'
-import { baseOptions } from 'web/compiler/options'
+import { baseOptions } from 'web/compiler/index'
 import { isIE, isEdge } from 'core/util/env'
 
 describe('parser', () => {

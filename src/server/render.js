@@ -38,9 +38,7 @@ const normalizeRender = vm => {
 }
 
 function renderNode (node, isRoot, context) {
-  if (node.isTextNode) {
-    renderTextNode(node, context)
-  } else if (isDef(node.componentOptions)) {
+  if (isDef(node.componentOptions)) {
     renderComponent(node, isRoot, context)
   } else {
     if (isDef(node.tag)) {
@@ -161,22 +159,6 @@ function renderComponentInner (node, isRoot, context) {
     prevActive
   })
   renderNode(childNode, isRoot, context)
-}
-
-function renderTextNode (el, context) {
-  const { write, next } = context
-  if (isUndef(el.children) || el.children.length === 0) {
-    write(el.open() + (el.close || ''), next)
-  } else {
-    const children: Array<VNode> = el.children
-    context.renderStates.push({
-      type: 'Element',
-      rendered: 0,
-      total: children.length,
-      endTag: el.close, children
-    })
-    write(el.open(), next)
-  }
 }
 
 function renderElement (el, isRoot, context) {
